@@ -1580,7 +1580,7 @@ CONTENT_SECURITY_POLICY_WARNING = True
 TALISMAN_ENABLED = False
 
 # If you want Talisman, how do you want it configured??
-'''TALISMAN_CONFIG = {
+TALISMAN_CONFIG = {
     "content_security_policy": {
         "base-uri": ["'self'"],
         "default-src": ["'self'"],
@@ -1639,7 +1639,7 @@ TALISMAN_DEV_CONFIG = {
     "force_https": False,
     "session_cookie_secure": False,
 }
-'''
+
 #
 # Flask session cookie options
 #
