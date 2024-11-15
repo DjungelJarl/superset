@@ -28,6 +28,10 @@ from flask_caching.backends.filesystemcache import FileSystemCache
 
 logger = logging.getLogger()
 
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+PREFERRED_URL_SCHEME = 'https'
+
 DATABASE_DIALECT = os.getenv("DATABASE_DIALECT")
 DATABASE_USER = os.getenv("DATABASE_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
@@ -117,3 +121,4 @@ try:
     )
 except ImportError:
     logger.info("Using default Docker config...")
+
