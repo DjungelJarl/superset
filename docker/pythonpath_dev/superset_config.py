@@ -118,7 +118,15 @@ EXTRA_CATEGORICAL_COLOR_SCHEMES = [
         "label": 'Curest Palette',
         "isDefault": False,
         "colors":
-         ['#FFFFFF', '#FAF7F5', '#F2EEEB', '#935756', '#2F2726']
+         [
+            '#3B3131',
+            '#564040',
+            '#734D4C',
+            '#935756',
+            '#A97471',
+            '#BD918C',
+            '#D0AFA9'
+         ]
     }]
 
 #
