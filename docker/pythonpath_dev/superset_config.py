@@ -79,14 +79,6 @@ DATA_CACHE_CONFIG = CACHE_CONFIG
 
 
 class CeleryConfig:
-    broker_url = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_CELERY_DB}"
-    imports = (
-        "superset.sql_lab",
-        "superset.tasks.scheduler",
-        "superset.tasks.thumbnails",
-        "superset.tasks.cache",
-    )
-    result_backend = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_RESULTS_DB}"
     worker_prefetch_multiplier = 1
     task_acks_late = False
     beat_schedule = {
@@ -101,6 +93,15 @@ class CeleryConfig:
     }
 
 
+broker_url = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_CELERY_DB}"
+imports = (
+    "superset.sql_lab",
+    "superset.tasks.scheduler",
+    "superset.tasks.thumbnails",
+    "superset.tasks.cache",
+)
+result_backend = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_RESULTS_DB}"
+
 CELERY_CONFIG = CeleryConfig
 
 FEATURE_FLAGS = {"ALERT_REPORTS": True}
@@ -110,7 +111,6 @@ WEBDRIVER_BASEURL = "http://superset:8088/"  # When using docker compose baseurl
 WEBDRIVER_BASEURL_USER_FRIENDLY = WEBDRIVER_BASEURL
 SQLLAB_CTAS_NO_LIMIT = True
 
-
 EXTRA_CATEGORICAL_COLOR_SCHEMES = [
     {
         "id": 'curestColors',
@@ -118,16 +118,33 @@ EXTRA_CATEGORICAL_COLOR_SCHEMES = [
         "label": 'Curest Palette',
         "isDefault": False,
         "colors":
-         [
-            '#3B3131',
-            '#564040',
-            '#734D4C',
-            '#935756',
-            '#A97471',
-            '#BD918C',
-            '#D0AFA9'
-         ]
-    }]
+            [
+                '#3B3131',
+                '#564040',
+                '#734D4C',
+                '#935756',
+                '#A97471',
+                '#BD918C',
+                '#D0AFA9'
+            ]
+    },
+    {
+        "id": 'kontorspartnerColors',
+        "description": '',
+        "label": 'Kontorspartner Palette',
+        "isDefault": False,
+        "colors":
+            [
+                '#472622',
+                '#732120',
+                '#A8141C',
+                '#E6001D',
+                '#FDB60F',
+                '#FEC75E',
+                '#FEDFAD'
+            ]
+    }
+]
 
 #
 # Optionally import superset_config_docker.py (which will have been included on
@@ -142,4 +159,3 @@ try:
     )
 except ImportError:
     logger.info("Using default Docker config...")
-
