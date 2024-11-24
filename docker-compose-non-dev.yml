@@ -149,5 +149,7 @@ volumes:
 
 networks:
   insights-network:
-    external: true
-    name: insights-network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.238.0/24
