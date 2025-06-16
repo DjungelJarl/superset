@@ -44,7 +44,7 @@ x-common-build: &common-build
 
 services:
   nginx:
-    image: nginx:latest
+    image: nginx:1.26.0
     container_name: superset_nginx
     restart: unless-stopped
     ports:
