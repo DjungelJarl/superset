@@ -32,7 +32,7 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 PREFERRED_URL_SCHEME = 'https'
 ENABLE_PROXY_FIX = True
-#SESSION_COOKIE_DOMAIN = 'pulse.dnexus.se'
+SESSION_COOKIE_DOMAIN = 'pulse.dnexus.se' #change depending on test / prod
 
 DATABASE_DIALECT = os.getenv("DATABASE_DIALECT")
 DATABASE_USER = os.getenv("DATABASE_USER")
