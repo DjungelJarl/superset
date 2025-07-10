@@ -24,9 +24,9 @@ export const WORLD_HEALTH_CHARTS = [
   { name: '% Rural', viz: 'world_map' },
   { name: 'Most Populated Countries', viz: 'table' },
   { name: "World's Population", viz: 'big_number' },
-  { name: 'Growth Rate', viz: 'line' },
+  { name: 'Growth Rate', viz: 'echarts_timeseries_line' },
   { name: 'Rural Breakdown', viz: 'sunburst_v2' },
-  { name: "World's Pop Growth", viz: 'area' },
+  { name: "World's Pop Growth", viz: 'echarts_area' },
   { name: 'Life Expectancy VS Rural %', viz: 'bubble' },
   { name: 'Treemap', viz: 'treemap_v2' },
   { name: 'Box plot', viz: 'box_plot' },
@@ -41,7 +41,7 @@ export const SUPPORTED_TIER1_CHARTS = [
   { name: 'Line Chart', viz: 'echarts_timeseries_line' },
   { name: 'Area Chart', viz: 'echarts_area' },
   { name: 'Scatter Chart', viz: 'echarts_timeseries_scatter' },
-  { name: 'Bar Chart V2', viz: 'echarts_timeseries_bar' },
+  { name: 'Bar Chart', viz: 'echarts_timeseries_bar' },
 ] as ChartSpec[];
 
 export const SUPPORTED_TIER2_CHARTS = [
@@ -125,7 +125,7 @@ export const valueNativeFilterOptions = [
 ];
 
 export function interceptGet() {
-  cy.intercept('/api/v1/dashboard/*').as('get');
+  cy.intercept('GET', '/api/v1/dashboard/*').as('get');
 }
 
 export function interceptFiltering() {
@@ -142,6 +142,10 @@ export function interceptDelete() {
 
 export function interceptUpdate() {
   cy.intercept('PUT', `/api/v1/dashboard/*`).as('update');
+}
+
+export function interceptExploreUpdate() {
+  cy.intercept('PUT', `/api/v1/chart/*`).as('chartUpdate');
 }
 
 export function interceptPost() {
@@ -224,6 +228,9 @@ export function collapseFilterOnLeftPanel() {
  ************************************************************************* */
 export function enterNativeFilterEditModal(waitForDataset = true) {
   interceptDataset();
+  cy.get(nativeFilters.filtersPanel.filterGear).click({
+    force: true,
+  });
   cy.get(nativeFilters.filterFromDashboardView.createFilterButton).click({
     force: true,
   });
@@ -239,11 +246,7 @@ export function enterNativeFilterEditModal(waitForDataset = true) {
  * @summary helper for adding new filter
  ************************************************************************* */
 export function clickOnAddFilterInModal() {
-  cy.get(nativeFilters.addFilterButton.button).first().click();
-  return cy
-    .get(nativeFilters.addFilterButton.dropdownItem)
-    .contains('Filter')
-    .click({ force: true });
+  return cy.get(nativeFilters.modal.addNewFilterButton).click({ force: true });
 }
 
 /** ************************************************************************
@@ -524,13 +527,17 @@ export function addCountryNameFilter() {
   );
 }
 
-export function openTab(tabComponentIndex: number, tabIndex: number) {
-  return cy
-    .getBySel('dashboard-component-tabs')
+export function openTab(
+  tabComponentIndex: number,
+  tabIndex: number,
+  target = 'dashboard-component-tabs',
+) {
+  cy.getBySel(target)
     .eq(tabComponentIndex)
     .find('[role="tab"]')
     .eq(tabIndex)
     .click();
+  cy.wait(500);
 }
 
 export const openTopLevelTab = (tabName: string) => {

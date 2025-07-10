@@ -16,7 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import moment from 'moment';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import { Metric } from '@superset-ui/chart-controls';
 import {
   ChartProps,
   getMetricLabel,
@@ -27,9 +29,11 @@ import {
 } from '@superset-ui/core';
 import { getComparisonFontSize, getHeaderFontSize } from './utils';
 
+dayjs.extend(utc);
+
 export const parseMetricValue = (metricValue: number | string | null) => {
   if (typeof metricValue === 'string') {
-    const dateObject = moment.utc(metricValue, moment.ISO_8601, true);
+    const dateObject = dayjs.utc(metricValue, undefined, true);
     if (dateObject.isValid()) {
       return dateObject.valueOf();
     }
@@ -97,6 +101,13 @@ export default function transformProps(chartProps: ChartProps) {
       adhoc_filter.operator === 'TEMPORAL_RANGE',
   )?.[0];
 
+  let metricEntry: Metric | undefined;
+  if (chartProps.datasource?.metrics) {
+    metricEntry = chartProps.datasource.metrics.find(
+      metricItem => metricItem.metric_name === metric,
+    );
+  }
+
   const isCustomOrInherit =
     timeComparison === 'custom' || timeComparison === 'inherit';
   let dataOffset: string[] = [];
@@ -137,7 +148,7 @@ export default function transformProps(chartProps: ChartProps) {
     metric,
     currencyFormats,
     columnFormats,
-    yAxisFormat,
+    metricEntry?.d3format || yAxisFormat,
     currencyFormat,
   );
 
@@ -162,7 +173,8 @@ export default function transformProps(chartProps: ChartProps) {
     percentDifferenceNum = (bigNumber - prevNumber) / Math.abs(prevNumber);
   }
 
-  const compType = compTitles[formData.timeComparison];
+  const compType =
+    compTitles[formData.timeComparison as keyof typeof compTitles];
   bigNumber = numberFormatter(bigNumber);
   prevNumber = numberFormatter(prevNumber);
   valueDifference = numberFormatter(valueDifference);

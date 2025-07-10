@@ -34,20 +34,16 @@ export { default as Card } from './Card';
 export {
   AutoComplete,
   Col,
-  Divider,
-  Empty,
   Grid,
-  List,
   Row,
   Skeleton,
-  Space,
-  Steps,
   Tag,
   Tree,
   TreeSelect,
   Typography,
   Upload,
 } from 'antd';
+export { Layout } from 'antd-v5';
 
 /*
  * Components that conflict with the ones in src/components.
@@ -63,7 +59,6 @@ export {
   Dropdown as AntdDropdown,
   Form as AntdForm,
   Input as AntdInput,
-  Modal as AntdModal,
   Select as AntdSelect,
   Slider as AntdSlider,
   Tabs as AntdTabs,
@@ -72,7 +67,5 @@ export {
 
 // Exported types
 export type { FormInstance } from 'antd/lib/form';
-export type { ListItemProps } from 'antd/lib/list';
-export type { ModalProps as AntdModalProps } from 'antd/lib/modal';
 export type { DropDownProps as AntdDropdownProps } from 'antd/lib/dropdown';
 export type { RadioChangeEvent } from 'antd/lib/radio';

@@ -33,8 +33,11 @@ import {
 import { storeWithState } from 'spec/fixtures/mockStore';
 import mockState from 'spec/fixtures/mockState';
 import { DASHBOARD_ROOT_ID } from 'src/dashboard/util/constants';
+import * as useNativeFiltersModule from './state';
 
 fetchMock.get('glob:*/csstemplateasyncmodelview/api/read', {});
+
+fetchMock.put('glob:*/api/v1/dashboard/*', {});
 
 jest.mock('src/dashboard/actions/dashboardState', () => ({
   ...jest.requireActual('src/dashboard/actions/dashboardState'),
@@ -126,7 +129,7 @@ describe('DashboardBuilder', () => {
   it('should render a DragDroppable DashboardHeader', () => {
     const { queryByTestId } = setup();
     const header = queryByTestId('dashboard-header-container');
-    expect(header).toBeTruthy();
+    expect(header).toBeInTheDocument();
   });
 
   it('should render a Sticky top-level Tabs if the dashboard has tabs', async () => {
@@ -206,7 +209,9 @@ describe('DashboardBuilder', () => {
   });
 
   it('should render a BuilderComponentPane if editMode=true and user selects "Insert Components" pane', () => {
-    const { queryAllByTestId } = setup({ dashboardState: { editMode: true } });
+    const { queryAllByTestId } = setup({
+      dashboardState: { ...mockState.dashboardState, editMode: true },
+    });
     const builderComponents = queryAllByTestId('mock-builder-component-pane');
     expect(builderComponents.length).toBeGreaterThanOrEqual(1);
   });
@@ -239,7 +244,7 @@ describe('DashboardBuilder', () => {
 
   it('should display a loading spinner when saving is in progress', async () => {
     const { findByAltText } = setup({
-      dashboardState: { dashboardIsSaving: true },
+      dashboardState: { ...mockState.dashboardState, dashboardIsSaving: true },
     });
 
     expect(await findByAltText('Loading...')).toBeVisible();
@@ -260,5 +265,46 @@ describe('DashboardBuilder', () => {
     });
     const filterbar = getByTestId('dashboard-filters-panel');
     expect(filterbar).toHaveStyleRule('width', `${expectedValue}px`);
+  });
+
+  it('should not render the filter bar when nativeFiltersEnabled is false', () => {
+    jest.spyOn(useNativeFiltersModule, 'useNativeFilters').mockReturnValue({
+      showDashboard: true,
+      missingInitialFilters: [],
+      dashboardFiltersOpen: true,
+      toggleDashboardFiltersOpen: jest.fn(),
+      nativeFiltersEnabled: false,
+    });
+    const { queryByTestId } = setup();
+
+    expect(queryByTestId('dashboard-filters-panel')).not.toBeInTheDocument();
+  });
+
+  it('should render the filter bar when nativeFiltersEnabled is true and not in edit mode', () => {
+    jest.spyOn(useNativeFiltersModule, 'useNativeFilters').mockReturnValue({
+      showDashboard: true,
+      missingInitialFilters: [],
+      dashboardFiltersOpen: true,
+      toggleDashboardFiltersOpen: jest.fn(),
+      nativeFiltersEnabled: true,
+    });
+    const { queryByTestId } = setup();
+
+    expect(queryByTestId('dashboard-filters-panel')).toBeInTheDocument();
+  });
+
+  it('should not render the filter bar when in edit mode even if nativeFiltersEnabled is true', () => {
+    jest.spyOn(useNativeFiltersModule, 'useNativeFilters').mockReturnValue({
+      showDashboard: true,
+      missingInitialFilters: [],
+      dashboardFiltersOpen: true,
+      toggleDashboardFiltersOpen: jest.fn(),
+      nativeFiltersEnabled: true,
+    });
+    const { queryByTestId } = setup({
+      dashboardState: { ...mockState.dashboardState, editMode: true },
+    });
+
+    expect(queryByTestId('dashboard-filters-panel')).not.toBeInTheDocument();
   });
 });

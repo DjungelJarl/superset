@@ -118,7 +118,7 @@ class TestDatabaseApi(SupersetTestCase):
         db.session.commit()
         return database
 
-    @pytest.fixture()
+    @pytest.fixture
     def create_database_with_report(self):
         with self.create_app().app_context():
             example_db = get_example_database()
@@ -142,7 +142,7 @@ class TestDatabaseApi(SupersetTestCase):
             db.session.delete(database)
             db.session.commit()
 
-    @pytest.fixture()
+    @pytest.fixture
     def create_database_with_dataset(self):
         with self.create_app().app_context():
             example_db = get_example_database()
@@ -332,7 +332,7 @@ class TestDatabaseApi(SupersetTestCase):
             .filter(SSHTunnel.database_id == response.get("id"))
             .one()
         )
-        assert response.get("result")["ssh_tunnel"]["password"] == "XXXXXXXXXX"
+        assert response.get("result")["ssh_tunnel"]["password"] == "XXXXXXXXXX"  # noqa: S105
         assert model_ssh_tunnel.database_id == response.get("id")
         # Cleanup
         model = db.session.query(Database).get(response.get("id"))
@@ -669,7 +669,7 @@ class TestDatabaseApi(SupersetTestCase):
             .one()
         )
         assert model_ssh_tunnel.database_id == response_update.get("id")
-        assert response_update.get("result")["ssh_tunnel"]["password"] == "XXXXXXXXXX"
+        assert response_update.get("result")["ssh_tunnel"]["password"] == "XXXXXXXXXX"  # noqa: S105
         assert model_ssh_tunnel.username == "Test"
         assert model_ssh_tunnel.server_address == "123.132.123.1"
         assert model_ssh_tunnel.server_port == 8080
@@ -959,6 +959,11 @@ class TestDatabaseApi(SupersetTestCase):
         assert rv.status_code == 201
         assert "sqlalchemy_form" in response["result"]["configuration_method"]
 
+        # Cleanup
+        model = db.session.query(Database).get(response.get("id"))
+        db.session.delete(model)
+        db.session.commit()
+
     def test_create_database_server_cert_validate(self):
         """
         Database API: Test create server cert validation
@@ -1132,7 +1137,7 @@ class TestDatabaseApi(SupersetTestCase):
         example_db = get_example_database()
         if example_db.backend in ("sqlite", "hive", "presto"):
             return
-        example_db.password = "wrong_password"
+        example_db.password = "wrong_password"  # noqa: S105
         database_data = {
             "database_name": "test-create-database-wrong-password",
             "sqlalchemy_uri": example_db.sqlalchemy_uri_decrypted,
@@ -1160,7 +1165,7 @@ class TestDatabaseApi(SupersetTestCase):
                     {
                         "code": 1015,
                         "message": (
-                            "Issue 1015 - Issue 1015 - Either the database is spelled incorrectly or does not exist."
+                            "Issue 1015 - Issue 1015 - Either the database is spelled incorrectly or does not exist."  # noqa: E501
                         ),
                     },
                 ],
@@ -1177,7 +1182,7 @@ class TestDatabaseApi(SupersetTestCase):
                     {
                         "code": 1013,
                         "message": (
-                            "Issue 1013 - The password provided when connecting to a database is not valid."
+                            "Issue 1013 - The password provided when connecting to a database is not valid."  # noqa: E501
                         ),
                     }
                 ],
@@ -1225,7 +1230,7 @@ class TestDatabaseApi(SupersetTestCase):
         test_database = self.insert_database(
             "test-database1", example_db.sqlalchemy_uri_decrypted
         )
-        example_db.password = "wrong_password"
+        example_db.password = "wrong_password"  # noqa: S105
         database_data = {
             "sqlalchemy_uri": example_db.sqlalchemy_uri_decrypted,
         }
@@ -1433,11 +1438,9 @@ class TestDatabaseApi(SupersetTestCase):
         assert rv.status_code == 200
         assert set(data["permissions"]) == {
             "can_read",
-            "can_columnar_upload",
-            "can_csv_upload",
-            "can_excel_upload",
             "can_write",
             "can_export",
+            "can_upload",
         }
 
     def test_get_invalid_database_table_metadata(self):
@@ -1771,7 +1774,7 @@ class TestDatabaseApi(SupersetTestCase):
             db.session.delete(database)
             db.session.commit()
 
-    def mock_csv_function(d, user):
+    def mock_csv_function(d, user):  # noqa: N805
         return d.get_all_schema_names()
 
     @mock.patch(
@@ -1817,35 +1820,6 @@ class TestDatabaseApi(SupersetTestCase):
             assert data["count"] == 1
             db.session.delete(database)
             db.session.commit()
-
-    def mock_empty_csv_function(d, user):
-        return []
-
-    @mock.patch(
-        "superset.views.core.app.config",
-        {**app.config, "ALLOWED_USER_CSV_SCHEMA_FUNC": mock_empty_csv_function},
-    )
-    def test_get_allow_file_upload_false_csv(self):
-        """
-        Database API: Test filter for allow file upload checks for schemas.
-        Both databases have false allow_file_upload
-        """
-        with self.create_app().app_context():
-            self.login(ADMIN_USERNAME)
-            arguments = {
-                "columns": ["allow_file_upload"],
-                "filters": [
-                    {
-                        "col": "allow_file_upload",
-                        "opr": "upload_is_enabled",
-                        "value": True,
-                    }
-                ],
-            }
-            uri = f"api/v1/database/?q={prison.dumps(arguments)}"
-            rv = self.client.get(uri)
-            data = json.loads(rv.data.decode("utf-8"))
-            assert data["count"] == 1
 
     def test_get_allow_file_upload_filter_no_permission(self):
         """
@@ -1979,7 +1953,7 @@ class TestDatabaseApi(SupersetTestCase):
 
         schema_name = self.default_schema_backend_map[database.backend]
         rv = self.client.get(
-            f"api/v1/database/{database.id}/tables/?q={prison.dumps({'schema_name': schema_name})}"
+            f"api/v1/database/{database.id}/tables/?q={prison.dumps({'schema_name': schema_name})}"  # noqa: E501
         )
 
         assert rv.status_code == 200
@@ -2001,7 +1975,7 @@ class TestDatabaseApi(SupersetTestCase):
         """
         self.login(GAMMA_USERNAME)
         example_db = get_example_database()
-        uri = f"api/v1/database/{example_db.id}/tables/?q={prison.dumps({'schema_name': 'non_existent'})}"
+        uri = f"api/v1/database/{example_db.id}/tables/?q={prison.dumps({'schema_name': 'non_existent'})}"  # noqa: E501
         rv = self.client.get(uri)
         assert rv.status_code == 404
         logger_mock.warning.assert_called_once_with(
@@ -2033,7 +2007,7 @@ class TestDatabaseApi(SupersetTestCase):
         mock_can_access_database.side_effect = Exception("Test Error")
 
         rv = self.client.get(
-            f"api/v1/database/{database.id}/tables/?q={prison.dumps({'schema_name': 'main'})}"
+            f"api/v1/database/{database.id}/tables/?q={prison.dumps({'schema_name': 'main'})}"  # noqa: E501
         )
         assert rv.status_code == 422
         logger_mock.warning.assert_called_once_with("Test Error", exc_info=True)
@@ -2105,7 +2079,7 @@ class TestDatabaseApi(SupersetTestCase):
                         "issue_codes": [
                             {
                                 "code": 1010,
-                                "message": "Issue 1010 - Superset encountered an error while running a command.",
+                                "message": "Issue 1010 - Superset encountered an error while running a command.",  # noqa: E501
                             }
                         ]
                     },
@@ -2134,7 +2108,7 @@ class TestDatabaseApi(SupersetTestCase):
                         "issue_codes": [
                             {
                                 "code": 1010,
-                                "message": "Issue 1010 - Superset encountered an error while running a command.",
+                                "message": "Issue 1010 - Superset encountered an error while running a command.",  # noqa: E501
                             }
                         ]
                     },
@@ -2163,7 +2137,7 @@ class TestDatabaseApi(SupersetTestCase):
         expected_response = {
             "message": {
                 "sqlalchemy_uri": [
-                    "SQLiteDialect_pysqlite cannot be used as a data source for security reasons."
+                    "SQLiteDialect_pysqlite cannot be used as a data source for security reasons."  # noqa: E501
                 ]
             }
         }
@@ -2183,7 +2157,7 @@ class TestDatabaseApi(SupersetTestCase):
         """
         Database API: Test test connection failed due to invalid hostname
         """
-        msg = 'psql: error: could not translate host name "localhost_" to address: nodename nor servname provided, or not known'
+        msg = 'psql: error: could not translate host name "localhost_" to address: nodename nor servname provided, or not known'  # noqa: E501
         mock_build_db.return_value.set_sqlalchemy_uri.side_effect = DBAPIError(
             msg, None, None
         )
@@ -2361,27 +2335,30 @@ class TestDatabaseApi(SupersetTestCase):
         response = json.loads(rv.data.decode("utf-8"))
 
         assert rv.status_code == 422
-        assert response == {
-            "errors": [
-                {
-                    "message": "Error importing database",
-                    "error_type": "GENERIC_COMMAND_ERROR",
-                    "level": "warning",
-                    "extra": {
-                        "databases/imported_database.yaml": "Database already exists and `overwrite=true` was not passed",
-                        "issue_codes": [
-                            {
-                                "code": 1010,
-                                "message": (
-                                    "Issue 1010 - Superset encountered an "
-                                    "error while running a command."
-                                ),
-                            }
-                        ],
-                    },
-                }
-            ]
-        }
+        assert (
+            response
+            == {
+                "errors": [
+                    {
+                        "message": "Error importing database",
+                        "error_type": "GENERIC_COMMAND_ERROR",
+                        "level": "warning",
+                        "extra": {
+                            "databases/imported_database.yaml": "Database already exists and `overwrite=true` was not passed",  # noqa: E501
+                            "issue_codes": [
+                                {
+                                    "code": 1010,
+                                    "message": (
+                                        "Issue 1010 - Superset encountered an "
+                                        "error while running a command."
+                                    ),
+                                }
+                            ],
+                        },
+                    }
+                ]
+            }
+        )
 
         # import with overwrite flag
         buf = self.create_database_import()
@@ -2555,7 +2532,7 @@ class TestDatabaseApi(SupersetTestCase):
             database.sqlalchemy_uri
             == "vertica+vertica_python://hackathon:XXXXXXXXXX@host:5433/dbname?ssl=1"
         )
-        assert database.password == "SECRET"
+        assert database.password == "SECRET"  # noqa: S105
 
         db.session.delete(database)
         db.session.commit()
@@ -2668,7 +2645,7 @@ class TestDatabaseApi(SupersetTestCase):
             .filter(SSHTunnel.database_id == database.id)
             .one()
         )
-        assert model_ssh_tunnel.password == "TEST"
+        assert model_ssh_tunnel.password == "TEST"  # noqa: S105
         db.session.delete(database)
         db.session.commit()
 
@@ -2709,32 +2686,35 @@ class TestDatabaseApi(SupersetTestCase):
         response = json.loads(rv.data.decode("utf-8"))
 
         assert rv.status_code == 422
-        assert response == {
-            "errors": [
-                {
-                    "message": "Error importing database",
-                    "error_type": "GENERIC_COMMAND_ERROR",
-                    "level": "warning",
-                    "extra": {
-                        "databases/imported_database.yaml": {
-                            "_schema": [
-                                "Must provide a private key for the ssh tunnel",
-                                "Must provide a private key password for the ssh tunnel",
-                            ]
+        assert (
+            response
+            == {
+                "errors": [
+                    {
+                        "message": "Error importing database",
+                        "error_type": "GENERIC_COMMAND_ERROR",
+                        "level": "warning",
+                        "extra": {
+                            "databases/imported_database.yaml": {
+                                "_schema": [
+                                    "Must provide a private key for the ssh tunnel",
+                                    "Must provide a private key password for the ssh tunnel",  # noqa: E501
+                                ]
+                            },
+                            "issue_codes": [
+                                {
+                                    "code": 1010,
+                                    "message": (
+                                        "Issue 1010 - Superset encountered an "
+                                        "error while running a command."
+                                    ),
+                                }
+                            ],
                         },
-                        "issue_codes": [
-                            {
-                                "code": 1010,
-                                "message": (
-                                    "Issue 1010 - Superset encountered an "
-                                    "error while running a command."
-                                ),
-                            }
-                        ],
-                    },
-                }
-            ]
-        }
+                    }
+                ]
+            }
+        )
 
     @mock.patch("superset.databases.schemas.is_feature_enabled")
     @mock.patch("superset.commands.database.importers.v1.utils.add_permissions")
@@ -2787,7 +2767,7 @@ class TestDatabaseApi(SupersetTestCase):
             .one()
         )
         assert model_ssh_tunnel.private_key == "TestPrivateKey"
-        assert model_ssh_tunnel.private_key_password == "TEST"
+        assert model_ssh_tunnel.private_key_password == "TEST"  # noqa: S105
         db.session.delete(database)
         db.session.commit()
 
@@ -3001,32 +2981,88 @@ class TestDatabaseApi(SupersetTestCase):
         response = json.loads(rv.data.decode("utf-8"))
 
         assert rv.status_code == 422
-        assert response == {
-            "errors": [
-                {
-                    "message": "Error importing database",
-                    "error_type": "GENERIC_COMMAND_ERROR",
-                    "level": "warning",
-                    "extra": {
-                        "databases/imported_database.yaml": {
-                            "_schema": [
-                                "Must provide a private key for the ssh tunnel",
-                                "Must provide a private key password for the ssh tunnel",
-                            ]
+        assert (
+            response
+            == {
+                "errors": [
+                    {
+                        "message": "Error importing database",
+                        "error_type": "GENERIC_COMMAND_ERROR",
+                        "level": "warning",
+                        "extra": {
+                            "databases/imported_database.yaml": {
+                                "_schema": [
+                                    "Must provide a private key for the ssh tunnel",
+                                    "Must provide a private key password for the ssh tunnel",  # noqa: E501
+                                ]
+                            },
+                            "issue_codes": [
+                                {
+                                    "code": 1010,
+                                    "message": (
+                                        "Issue 1010 - Superset encountered an "
+                                        "error while running a command."
+                                    ),
+                                }
+                            ],
                         },
-                        "issue_codes": [
-                            {
-                                "code": 1010,
-                                "message": (
-                                    "Issue 1010 - Superset encountered an "
-                                    "error while running a command."
-                                ),
-                            }
-                        ],
-                    },
-                }
-            ]
+                    }
+                ]
+            }
+        )
+
+    @mock.patch("superset.commands.database.importers.v1.utils.add_permissions")
+    def test_import_database_row_expansion_enabled(self, mock_add_permissions):
+        """
+        Database API: Test import database with row expansion enabled.
+        """
+        self.login(ADMIN_USERNAME)
+        uri = "api/v1/database/import/"
+
+        db_config = {
+            "database_name": "DB with expand rows enabled",
+            "allow_csv_upload": True,
+            "allow_ctas": True,
+            "allow_cvas": True,
+            "allow_dml": True,
+            "allow_run_async": False,
+            "cache_timeout": None,
+            "expose_in_sqllab": True,
+            "extra": {
+                "schema_options": {"expand_rows": True},
+            },
+            "sqlalchemy_uri": "postgresql://user:pass@host1",
+            "uuid": "b8a1ccd3-779d-4ab7-8ad8-9ab119d7ff90",
+            "version": "1.0.0",
         }
+
+        buf = BytesIO()
+        with ZipFile(buf, "w") as bundle:
+            with bundle.open("database_export/metadata.yaml", "w") as fp:
+                fp.write(yaml.safe_dump(database_metadata_config).encode())
+            with bundle.open(
+                "database_export/databases/DB_with_expand_rows_enabled.yaml", "w"
+            ) as fp:
+                fp.write(yaml.safe_dump(db_config).encode())
+        buf.seek(0)
+
+        form_data = {
+            "formData": (buf, "database_export.zip"),
+            "passwords": json.dumps(
+                {"databases/DB_with_expand_rows_enabled.yaml": "SECRET"}
+            ),
+        }
+        rv = self.client.post(uri, data=form_data, content_type="multipart/form-data")
+        response = json.loads(rv.data.decode("utf-8"))
+
+        assert rv.status_code == 200
+        assert response == {"message": "OK"}
+
+        database = db.session.query(Database).filter_by(uuid=db_config["uuid"]).one()
+        assert database.extra == json.dumps({"schema_options": {"expand_rows": True}})
+
+        db.session.delete(database)
+        db.session.commit()
 
     @mock.patch(
         "superset.db_engine_specs.base.BaseEngineSpec.get_function_names",
@@ -3210,7 +3246,7 @@ class TestDatabaseApi(SupersetTestCase):
                                 "type": "string",
                             },
                             "encryption": {
-                                "description": "Use an encrypted connection to the database",
+                                "description": "Use an encrypted connection to the database",  # noqa: E501
                                 "type": "boolean",
                             },
                             "host": {
@@ -3234,7 +3270,7 @@ class TestDatabaseApi(SupersetTestCase):
                                 "type": "object",
                             },
                             "ssh": {
-                                "description": "Use an ssh tunnel connection to the database",
+                                "description": "Use an ssh tunnel connection to the database",  # noqa: E501
                                 "type": "boolean",
                             },
                             "username": {
@@ -3294,7 +3330,7 @@ class TestDatabaseApi(SupersetTestCase):
                                 "type": "string",
                             },
                             "encryption": {
-                                "description": "Use an encrypted connection to the database",
+                                "description": "Use an encrypted connection to the database",  # noqa: E501
                                 "type": "boolean",
                             },
                             "host": {
@@ -3318,7 +3354,7 @@ class TestDatabaseApi(SupersetTestCase):
                                 "type": "object",
                             },
                             "ssh": {
-                                "description": "Use an ssh tunnel connection to the database",
+                                "description": "Use an ssh tunnel connection to the database",  # noqa: E501
                                 "type": "boolean",
                             },
                             "username": {
@@ -3378,7 +3414,7 @@ class TestDatabaseApi(SupersetTestCase):
                                 "type": "string",
                             },
                             "encryption": {
-                                "description": "Use an encrypted connection to the database",
+                                "description": "Use an encrypted connection to the database",  # noqa: E501
                                 "type": "boolean",
                             },
                             "host": {
@@ -3402,7 +3438,7 @@ class TestDatabaseApi(SupersetTestCase):
                                 "type": "object",
                             },
                             "ssh": {
-                                "description": "Use an ssh tunnel connection to the database",
+                                "description": "Use an ssh tunnel connection to the database",  # noqa: E501
                                 "type": "boolean",
                             },
                             "username": {
@@ -3507,7 +3543,7 @@ class TestDatabaseApi(SupersetTestCase):
                         "issue_codes": [
                             {
                                 "code": 1019,
-                                "message": "Issue 1019 - The submitted payload has the incorrect format.",
+                                "message": "Issue 1019 - The submitted payload has the incorrect format.",  # noqa: E501
                             }
                         ]
                     },
@@ -3606,7 +3642,10 @@ class TestDatabaseApi(SupersetTestCase):
     @mock.patch("superset.db_engine_specs.base.is_port_open")
     @mock.patch("superset.databases.api.ValidateDatabaseParametersCommand")
     def test_validate_parameters_valid_payload(
-        self, ValidateDatabaseParametersCommand, is_port_open, is_hostname_valid
+        self,
+        ValidateDatabaseParametersCommand,  # noqa: N803
+        is_port_open,
+        is_hostname_valid,  # noqa: N803
     ):
         is_hostname_valid.return_value = True
         is_port_open.return_value = True
@@ -3786,13 +3825,13 @@ class TestDatabaseApi(SupersetTestCase):
                         "issue_codes": [
                             {
                                 "code": 1018,
-                                "message": "Issue 1018 - One or more parameters needed to configure a database are missing.",
+                                "message": "Issue 1018 - One or more parameters needed to configure a database are missing.",  # noqa: E501
                             }
                         ],
                     },
                 },
                 {
-                    "message": "The port must be an integer between 0 and 65535 (inclusive).",
+                    "message": "The port must be an integer between 0 and 65535 (inclusive).",  # noqa: E501
                     "error_type": "CONNECTION_INVALID_PORT_ERROR",
                     "level": "error",
                     "extra": {

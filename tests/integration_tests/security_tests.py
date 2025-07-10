@@ -1191,7 +1191,7 @@ class TestRolePermission(SupersetTestCase):
         delete_schema_perm("[examples].[1]")
 
     def test_schemas_accessible_by_user_datasource_access(self):
-        # User has schema access to the datasource temp_schema.wb_health_population in examples DB.
+        # User has schema access to the datasource temp_schema.wb_health_population in examples DB.  # noqa: E501
         database = get_example_database()
         with self.client.application.test_request_context():
             with override_user(security_manager.find_user("gamma")):
@@ -1201,7 +1201,7 @@ class TestRolePermission(SupersetTestCase):
                 assert schemas == {"temp_schema"}
 
     def test_schemas_accessible_by_user_datasource_and_schema_access(self):
-        # User has schema access to the datasource temp_schema.wb_health_population in examples DB.
+        # User has schema access to the datasource temp_schema.wb_health_population in examples DB.  # noqa: E501
         create_schema_perm("[examples].[2]")
         with self.client.application.test_request_context():
             database = get_example_database()
@@ -1286,7 +1286,7 @@ class TestRolePermission(SupersetTestCase):
             "page": 0,
             "page_size": -1,
         }
-        NEW_FLASK_GET_SQL_DBS_REQUEST = f"/api/v1/database/?q={prison.dumps(arguments)}"
+        NEW_FLASK_GET_SQL_DBS_REQUEST = f"/api/v1/database/?q={prison.dumps(arguments)}"  # noqa: N806
         self.login(GAMMA_USERNAME)
         databases_json = self.client.get(NEW_FLASK_GET_SQL_DBS_REQUEST).json
         assert databases_json["count"] == 1
@@ -1336,7 +1336,7 @@ class TestRolePermission(SupersetTestCase):
         self.assert_cannot_menu("Upload a CSV", perm_set)
         self.assert_cannot_menu("ReportSchedule", perm_set)
         self.assert_cannot_menu("Alerts & Report", perm_set)
-        assert ("can_csv_upload", "Database") not in perm_set
+        assert ("can_upload", "Database") not in perm_set
 
     def assert_can_gamma(self, perm_set):
         self.assert_can_read("Dataset", perm_set)
@@ -1365,7 +1365,7 @@ class TestRolePermission(SupersetTestCase):
         self.assert_can_all("CssTemplate", perm_set)
         self.assert_can_all("Dataset", perm_set)
         self.assert_can_read("Database", perm_set)
-        assert ("can_csv_upload", "Database") in perm_set
+        assert ("can_upload", "Database") in perm_set
         self.assert_can_menu("Manage", perm_set)
         self.assert_can_menu("Annotation Layers", perm_set)
         self.assert_can_menu("CSS Templates", perm_set)
@@ -1488,6 +1488,8 @@ class TestRolePermission(SupersetTestCase):
             ("menu_access", "Saved Queries"),
             ("menu_access", "SQL Editor"),
             ("menu_access", "SQL Lab"),
+            ("can_read", "SqlLabPermalinkRestApi"),
+            ("can_write", "SqlLabPermalinkRestApi"),
         }
 
         self.assert_cannot_alpha(sql_lab_set)
@@ -1543,6 +1545,7 @@ class TestRolePermission(SupersetTestCase):
             ["SecurityApi", "login"],
             ["SecurityApi", "refresh"],
             ["SupersetIndexView", "index"],
+            ["SupersetIndexView", "patch_flask_locale"],
             ["DatabaseRestApi", "oauth2"],
         ]
         unsecured_views = []
@@ -1616,7 +1619,7 @@ class TestSecurityManager(SupersetTestCase):
         mock_can_access_schema.return_value = False
         mock_is_owner.return_value = False
 
-        with self.assertRaises(SupersetSecurityException):
+        with self.assertRaises(SupersetSecurityException):  # noqa: PT027
             security_manager.raise_for_access(datasource=datasource)
 
     @patch("superset.security.SupersetSecurityManager.is_owner")
@@ -1635,12 +1638,12 @@ class TestSecurityManager(SupersetTestCase):
         mock_can_access.return_value = False
         mock_is_owner.return_value = False
 
-        with self.assertRaises(SupersetSecurityException):
+        with self.assertRaises(SupersetSecurityException):  # noqa: PT027
             security_manager.raise_for_access(query=query)
 
     def test_raise_for_access_sql_fails(self):
         with override_user(security_manager.find_user("gamma")):
-            with self.assertRaises(SupersetSecurityException):
+            with self.assertRaises(SupersetSecurityException):  # noqa: PT027
                 security_manager.raise_for_access(
                     database=get_example_database(),
                     schema="bar",
@@ -1672,7 +1675,7 @@ class TestSecurityManager(SupersetTestCase):
         mock_can_access_schema.return_value = False
         mock_is_owner.return_value = False
         with override_user(security_manager.find_user("gamma")):
-            with self.assertRaises(SupersetSecurityException):
+            with self.assertRaises(SupersetSecurityException):  # noqa: PT027
                 security_manager.raise_for_access(query_context=query_context)
 
     @patch("superset.security.SupersetSecurityManager.can_access")
@@ -1685,7 +1688,7 @@ class TestSecurityManager(SupersetTestCase):
 
         mock_can_access.return_value = False
 
-        with self.assertRaises(SupersetSecurityException):
+        with self.assertRaises(SupersetSecurityException):  # noqa: PT027
             security_manager.raise_for_access(database=database, table=table)
 
     @patch("superset.security.SupersetSecurityManager.is_owner")
@@ -1703,7 +1706,7 @@ class TestSecurityManager(SupersetTestCase):
         mock_can_access_schema.return_value = False
         mock_is_owner.return_value = False
         with override_user(security_manager.find_user("gamma")):
-            with self.assertRaises(SupersetSecurityException):
+            with self.assertRaises(SupersetSecurityException):  # noqa: PT027
                 security_manager.raise_for_access(viz=test_viz)
 
     @pytest.mark.usefixtures("load_birth_names_dashboard_with_slices")
@@ -1748,7 +1751,7 @@ class TestSecurityManager(SupersetTestCase):
                 births.roles = []
 
                 # No dashboard roles.
-                with self.assertRaises(SupersetSecurityException):
+                with self.assertRaises(SupersetSecurityException):  # noqa: PT027
                     security_manager.raise_for_access(
                         **{
                             kwarg: Mock(
@@ -1764,7 +1767,7 @@ class TestSecurityManager(SupersetTestCase):
                 births.roles = [self.get_role("Gamma")]
 
                 # Undefined dashboard.
-                with self.assertRaises(SupersetSecurityException):
+                with self.assertRaises(SupersetSecurityException):  # noqa: PT027
                     security_manager.raise_for_access(
                         **{
                             kwarg: Mock(
@@ -1775,7 +1778,7 @@ class TestSecurityManager(SupersetTestCase):
                     )
 
                 # Undefined dashboard chart.
-                with self.assertRaises(SupersetSecurityException):
+                with self.assertRaises(SupersetSecurityException):  # noqa: PT027
                     security_manager.raise_for_access(
                         **{
                             kwarg: Mock(
@@ -1786,7 +1789,7 @@ class TestSecurityManager(SupersetTestCase):
                     )
 
                 # Ill-defined dashboard chart.
-                with self.assertRaises(SupersetSecurityException):
+                with self.assertRaises(SupersetSecurityException):  # noqa: PT027
                     security_manager.raise_for_access(
                         **{
                             kwarg: Mock(
@@ -1800,7 +1803,7 @@ class TestSecurityManager(SupersetTestCase):
                     )
 
                 # Dashboard chart not associated with said datasource.
-                with self.assertRaises(SupersetSecurityException):
+                with self.assertRaises(SupersetSecurityException):  # noqa: PT027
                     security_manager.raise_for_access(
                         **{
                             kwarg: Mock(
@@ -1827,7 +1830,7 @@ class TestSecurityManager(SupersetTestCase):
                 )
 
                 # Ill-defined native filter.
-                with self.assertRaises(SupersetSecurityException):
+                with self.assertRaises(SupersetSecurityException):  # noqa: PT027
                     security_manager.raise_for_access(
                         **{
                             kwarg: Mock(
@@ -1841,7 +1844,7 @@ class TestSecurityManager(SupersetTestCase):
                     )
 
                 # Native filter not associated with said datasource.
-                with self.assertRaises(SupersetSecurityException):
+                with self.assertRaises(SupersetSecurityException):  # noqa: PT027
                     security_manager.raise_for_access(
                         **{
                             kwarg: Mock(
@@ -2055,7 +2058,7 @@ class TestGuestTokens(SupersetTestCase):
         guest_user = security_manager.get_guest_user_from_request(fake_request)
 
         assert guest_user is None
-        self.assertRaisesRegex(ValueError, "Guest token does not contain a user claim")
+        self.assertRaisesRegex(ValueError, "Guest token does not contain a user claim")  # noqa: PT027
 
     def test_get_guest_user_no_resource(self):
         user = {"username": "test_guest"}
@@ -2066,7 +2069,7 @@ class TestGuestTokens(SupersetTestCase):
         fake_request.headers[current_app.config["GUEST_TOKEN_HEADER_NAME"]] = token
         security_manager.get_guest_user_from_request(fake_request)
 
-        self.assertRaisesRegex(
+        self.assertRaisesRegex(  # noqa: PT027
             ValueError, "Guest token does not contain a resources claim"
         )
 
@@ -2095,7 +2098,7 @@ class TestGuestTokens(SupersetTestCase):
         guest_user = security_manager.get_guest_user_from_request(fake_request)
 
         assert guest_user is None
-        self.assertRaisesRegex(ValueError, "This is not a guest token.")
+        self.assertRaisesRegex(ValueError, "This is not a guest token.")  # noqa: PT027
 
     def test_get_guest_user_bad_audience(self):
         now = time.time()
@@ -2121,7 +2124,7 @@ class TestGuestTokens(SupersetTestCase):
         fake_request.headers[current_app.config["GUEST_TOKEN_HEADER_NAME"]] = token
         guest_user = security_manager.get_guest_user_from_request(fake_request)
 
-        self.assertRaisesRegex(jwt.exceptions.InvalidAudienceError, "Invalid audience")
+        self.assertRaisesRegex(jwt.exceptions.InvalidAudienceError, "Invalid audience")  # noqa: PT027
         assert guest_user is None
 
     @patch("superset.security.SupersetSecurityManager._get_current_epoch_time")

@@ -437,6 +437,8 @@ class DatabricksNativeEngineSpec(DatabricksDynamicBaseEngineSpec):
         """
         Return the default catalog.
 
+        It's optionally specified in `connect_args.catalog`. If not:
+
         The default behavior for Databricks is confusing. When Unity Catalog is not
         enabled we have (the DB engine spec hasn't been tested with it enabled):
 
@@ -448,6 +450,10 @@ class DatabricksNativeEngineSpec(DatabricksDynamicBaseEngineSpec):
         To handle permissions correctly we use the result of `SHOW CATALOGS` when a
         single catalog is returned.
         """
+        connect_args = cls.get_extra_params(database)["engine_params"]["connect_args"]
+        if default_catalog := connect_args.get("catalog"):
+            return default_catalog
+
         with database.get_sqla_engine() as engine:
             catalogs = {catalog for (catalog,) in engine.execute("SHOW CATALOGS")}
             if len(catalogs) == 1:
@@ -464,8 +470,10 @@ class DatabricksNativeEngineSpec(DatabricksDynamicBaseEngineSpec):
     ) -> list[str]:
         prequeries = []
         if catalog:
+            catalog = f"`{catalog}`" if not catalog.startswith("`") else catalog
             prequeries.append(f"USE CATALOG {catalog}")
         if schema:
+            schema = f"`{schema}`" if not schema.startswith("`") else schema
             prequeries.append(f"USE SCHEMA {schema}")
         return prequeries
 
